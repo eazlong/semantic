@@ -9,14 +9,14 @@ import os
 
 
 class Tagger(object):
-    def __init__(self, data_file, vocab_file, category, ckpt_path):
+    def __init__(self, data_file, vocab_file, category, ckpt_path, step=1):
         self.data_file = data_file
         self.vocab_file = vocab_file
         self.ckpt_path = ckpt_path
         self.init = False
         self.keys = dp.get_keys(data_file)  # 从数据文件中获取标签
         self.category = category
-        self.model = model.Predictor(category, len(self.keys), ckpt_path)
+        self.model = model.Predictor(category, len(self.keys), ckpt_path, step)
 
     # 训练
     def train(self, retrain=False):
@@ -27,7 +27,8 @@ class Tagger(object):
         # 考虑到训练量比较小，词汇表更改比较频繁，每次都重新训练
         # 从数据文件生成词汇表
         self.word_to_id, self.vocabs = dp.build_vocabulary(self.vocab_file)
-        train_data = dp.genarate_train_data(self.data_file, self.word_to_id, self.keys)
+        train_data = dp.genarate_train_data(
+            self.data_file, self.word_to_id, self.keys, self.vocab_file)
 
         self.model.train(train_data, self.vocabs, retrain)
         self.trained = True
@@ -38,7 +39,9 @@ class Tagger(object):
             self.init = True
 
         data = jieba.lcut(sentense)
-        ids = dp.data_to_word_ids(data, self.word_to_id)
+        numb = []
+        ids = dp.data_to_word_ids(data, self.word_to_id, numb)
+        print(self.vocab_file, data, ids)
         tag_ids = self.model.predict(ids)
         pairs = {}
         i = 0
@@ -58,7 +61,7 @@ if __name__ == "__main__":
     word_to_id, v = dp.create_vocabulary_from_data_file(vocab_file, data_file)
 
     tagger = Tagger(data_file, vocab_file, category)
-    # tagger.train()
+    tagger.train()
     tagger.determine("帮我采购3台BB")
     tagger.determine("我要买5000台iphone9")
 

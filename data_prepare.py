@@ -6,12 +6,14 @@ import collections
 from tensorflow.python.platform import gfile
 
 _UNK = "_UNK"
+_PAD = "_PAD"
+_NUM = "_NUM"
 
 ''' 整理训练文件，提取需要的关键词。'''
 
 
 def get_keys(file_name):
-    keys = ['unk']
+    keys = ['none', 'unk']
     with open(file_name, encoding='utf-8') as f:
         data = f.read()
         pattern = re.compile(r"\[([^/]+)\]")
@@ -31,13 +33,22 @@ def del_keys(file_name, out_file_name):
         with open(out_file_name, 'w') as fw:
             fw.write(str)
 
+#
+
+
+def add_new_vacab(vocab_file, new_vocab):
+    with open(vocab_file, 'a+') as f:
+        f.write(new_vocab + '\n')
+        jieba.add_word(new_vocab)
 ''' 生成训练标签对 '''
 
 
-def genarate_train_data(file_name, word_to_ids, labels):
+def genarate_train_data(file_name, word_to_ids, labels, vocab_file):
     train_data = []
     with open(file_name, encoding='utf-8') as f:
+        a = []
         for line in f.readlines():
+            line = line.strip()
             pattern = re.compile(r'(.*?)\[(.*?)\](.*?)\[/\]')
             items = re.findall(pattern, line)
             vocab = []
@@ -45,15 +56,30 @@ def genarate_train_data(file_name, word_to_ids, labels):
             for item in items:
                 if item[0] != '':
                     val = jieba.lcut(item[0])
+                    a.extend(val)
                     vocab.extend([word_to_ids[word] for word in val])
-                    l.extend([0] * len(val))
-                val = jieba.lcut(item[2])
-                vocab.extend([word_to_ids[word] for word in val])
-                # jieba.add_word
-                temp = labels.index(item[1])
-                l.extend([temp] * len(val))
-            train_data.append((vocab, l))
+                    l.extend([labels.index('none')] * len(val))
 
+                data = item[2]
+                if data.isdigit():
+                    data = _NUM
+                if data not in word_to_ids:
+                    print("add %s to words" % data)
+                    add_new_vacab(vocab_file, data)
+                    word_to_ids[data] = len(word_to_ids)
+                a.append(data)
+                vocab.append(word_to_ids[data])
+                l.append(labels.index(item[1]))
+
+            pos = line.rindex(']')
+            if pos != -1 and pos != len(line) - 1:
+                val = jieba.lcut(line[pos + 1:])
+                a.extend(val)
+                vocab.extend([word_to_ids[word] for word in val])
+                l.extend([labels.index('none')] * len(val))
+
+            train_data.append((vocab, l))
+        print(a, labels)
     return train_data
 
 ''' read data and seg to vocab list '''
@@ -80,14 +106,19 @@ def create_vocabulary_from_data_file(vocab_file, data_file):
     return create_vocabulary_from_data(vocab_file, vocabs)
 
 
-def create_vocabulary_from_data(vocab_file, vocabs):
-    vocabs = re.sub(
-        "[\t\r\n\u3000+\.\!\/_,x$%^*(+\"\']+|[·+——！，。：；》\{\}《？、?~@#￥%……&*（）【】”“]+", "", vocabs)
-    cabs = jieba.lcut(vocabs)
+def create_vocabulary_from_data(vocab_file, data, cut=False):
+    data = re.sub(
+        r"[\t\r\n\u3000+\.\!\/_,x$%^*(+\"\']+|[·+——！，。：；》《？、?~@#￥%……&*（）【】”“]+|(\[.*?\])", "", data)
+    cabs = jieba.lcut(data)
+    cabs = [cab if not cab.isdigit() else _NUM for cab in cabs]
     counter = collections.Counter(cabs)
     count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
+    if cut:
+        for word in count_pairs:
+            if float(word[1]) / float(len(cabs)) > 0.05:
+                count_pairs.remove(word)
     words, _ = list(zip(*count_pairs))
-    v = [_UNK] + list(words)
+    v = [_PAD, _UNK] + list(words)
     write_vocabulary(vocab_file, v)
     word_to_id = dict(zip(v, range(len(v))))
     return word_to_id, v
@@ -116,10 +147,13 @@ def file_to_word_ids(filename, word_to_id):
 # data to word ids
 
 
-def data_to_word_ids(data, word_to_id):
+def data_to_word_ids(data, word_to_id, numbs=[]):
     ids = []
     for word in data:
         print(word)
+        if word.isdigit():
+            numbs.extend(word)
+            word = _NUM
         if word in word_to_id:
             ids.append(word_to_id[word])
         else:
@@ -127,8 +161,9 @@ def data_to_word_ids(data, word_to_id):
     return ids
 
 if __name__ == '__main__':
-    keys = get_keys("data/shopping.data")
-    word_to_ids, _ = create_vocabulary_from_data_file(
-        "data/shopping_vocab.txt", "data/shopping.data")
-    train_data = genarate_train_data("data/shopping.data", word_to_ids, keys)
+    df = "data/test9/connector.data"
+    vf = "data/test9/test9_connector.vocabs"
+    keys = get_keys(df)
+    word_to_ids, _ = create_vocabulary_from_data_file(vf, df)
+    train_data = genarate_train_data(df, word_to_ids, keys, vf)
     print(train_data)

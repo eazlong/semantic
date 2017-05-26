@@ -1,7 +1,8 @@
 """
     this class is for session manage.
 """
-for enum import Enum
+from enum import Enum
+import jieba
 
 State = Enum("State", ("Init", "Start", "Run", "Finish"))
 
@@ -19,3 +20,11 @@ class Session(object):
 
     def run(self, args):
         content = args.get('content')
+
+if __name__ == "__main__":
+    sentence = "我要看小区景观"
+    print(jieba.lcut(sentence))
+    jieba.add_word("小区景观")
+    print(jieba.lcut(sentence))
+    jieba.del_word("小区景观")
+    print(jieba.lcut(sentence))

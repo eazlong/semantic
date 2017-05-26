@@ -1,2 +1,2 @@
-# sematic
-sematic
+# semantic
+semantic
