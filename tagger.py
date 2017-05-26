@@ -4,6 +4,7 @@ import model
 import jieba
 import tensorflow as tf
 import os
+import logging
 
 # 标注器。
 
@@ -33,16 +34,16 @@ class Tagger(object):
         self.model.train(train_data, self.vocabs, retrain)
         self.trained = True
 
-    def determine(self, sentense):
-        if not self.init:
+    def determine(self, sentense, reload=False):
+        if (not self.init) or reload:
             self.word_to_id, self.vocabs = dp.build_vocabulary(self.vocab_file)
             self.init = True
 
         data = jieba.lcut(sentense)
         numb = []
         ids = dp.data_to_word_ids(data, self.word_to_id, numb)
-        print(self.vocab_file, data, ids)
-        tag_ids = self.model.predict(ids)
+        logging.debug("%s,%s,%s" % (self.vocab_file, data, ids))
+        tag_ids = self.model.predict(ids, reload)
         pairs = {}
         i = 0
         for tag_id in tag_ids:
@@ -50,7 +51,7 @@ class Tagger(object):
                 pairs[self.keys[tag_id]] = data[i]
             i = i + 1
 
-        print("pairs", pairs)
+        logging.debug("pairs %s" % pairs)
         return pairs
 
 if __name__ == "__main__":

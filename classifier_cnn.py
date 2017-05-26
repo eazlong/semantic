@@ -7,6 +7,7 @@ import data_prepare as dp
 import random
 import jieba
 import os
+import logging
 
 model = "classifier"
 
@@ -25,7 +26,7 @@ class Classifier(object):
 
         with g.as_default():
             with tf.variable_scope(self.appid, reuse=None):
-                print(tf.get_default_graph())
+                logging.debug(tf.get_default_graph())
                 input_size = len(self.lex)
                 self.X = X = tf.placeholder(tf.int32, [None, input_size])
                 self.Y = Y = tf.placeholder(tf.float32, [None, self.num_classes])
@@ -74,7 +75,7 @@ class Classifier(object):
     # 将句子转化为向量
     def __sentense2feature(self, sentense):
         words = jieba.lcut(sentense)
-        print("words", words)
+        logging.debug("words %s" % words)
         features = np.zeros(len(self.lex))
         for word in words:
             if word.isdigit():
@@ -86,18 +87,17 @@ class Classifier(object):
     def train(self, data):
         with self.g.as_default():
             sess = tf.InteractiveSession()
-            print(tf.get_default_graph())
+            logging.debug(tf.get_default_graph())
             tf.initialize_all_variables().run()
             pos = 0
-            epoch_size = 32
+            epoch_size = 20
 
             while pos < epoch_size:
                 batch_x = []
                 batch_y = []
-                # try:
-                for i in range(self.batch_size):
-                    random_point = random.randint(0, len(data) - 1)
-                    k = sorted(data)[random_point]
+                rarray = np.random.randint(0, high=len(data) - 1, size=self.batch_size)
+                for i in list(rarray):
+                    k = sorted(data)[i]
                     features = self.__sentense2feature(k)
                     label = np.zeros(self.num_classes)
                     label[self.labels.index(data[k])] = 1
@@ -107,13 +107,13 @@ class Classifier(object):
                     _, loss_ = sess.run([self.train_op, self.loss], feed_dict={
                                         self.X: batch_x, self.Y: batch_y, self.dropout_keep_prob: 0.8})
                 pos += 1
-                print("epoch size %d, loss %.3f" % (pos, loss_))
+                logging.debug("epoch size %d, loss %.3f" % (pos, loss_))
             # 训练完成，保存模型
             tf.train.Saver().save(sess, os.path.join(self.ckpt_dir, model + ".ckpt"))
             sess.close()
 
     def __load(self, sess):
-        print(self.ckpt_dir)
+        logging.debug(self.ckpt_dir)
         ckpt = tf.train.get_checkpoint_state(self.ckpt_dir)
         if ckpt and ckpt.model_checkpoint_path:
             tf.train.Saver().restore(sess, ckpt.model_checkpoint_path)
@@ -121,14 +121,14 @@ class Classifier(object):
             raise ValueError("check point file %s not found. please train model first" %
                              self.ckpt_dir)
 
-    def predict(self, sentense):
+    def predict(self, sentense, reload=False):
         with self.g.as_default():
-            if not self.inited:
+            if (not self.inited) or reload:
                 sess = self.session = tf.InteractiveSession()
                 tf.initialize_all_variables().run()
                 self.__load(sess)
                 self.inited = True
-                print(self.lex)
+                logging.debug(self.lex)
             sess = self.session
             features = self.__sentense2feature(sentense)
             label = np.zeros(self.num_classes)
@@ -183,15 +183,15 @@ if __name__ == "__main__":
     vocab_file = "data/v.txt"
     d = ".".join(list(data.keys()))
     lex, v = dp.create_vocabulary_from_data(vocab_file, d, True)
-    print(lex, v)
+    logging.debug(lex, v)
 
     c = Classifier(v, "aaa", "data/aaa/classifier", ['order', 'query'])
     c.train(data)
-    print(c.predict("帮我看最贵的手机"))
-    print(c.predict("帮我订购5台手机"))
-    print(c.predict("我要买销量最好的核弹"))
-    print(c.predict("帮我看看销量最好的核弹"))
+    logging.debug(c.predict("帮我看最贵的手机"))
+    logging.debug(c.predict("帮我订购5台手机"))
+    logging.debug(c.predict("我要买销量最好的核弹"))
+    logging.debug(c.predict("帮我看看销量最好的核弹"))
 
     #c1 = Classifier(v, 2, "bbb", "data/bbb/classifier")
     # c1.train(data)
-    # print(c1.predict("我要看最贵的手机"))
+    # logging.debug(c1.predict("我要看最贵的手机"))

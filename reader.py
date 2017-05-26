@@ -13,7 +13,7 @@ import sys
 import os
 import codecs
 import re
-
+import logging
 import numpy as np
 import tensorflow as tf
 
@@ -127,15 +127,15 @@ def load_data(data_path=None):
   # Save word_dict and tag_dict
   _save_vocab(word_to_id, os.path.join(data_path, "word_to_id"))
   _save_vocab(tag_to_id, os.path.join(data_path, "tag_to_id"))
-  print("word dictionary size " + str(len(word_to_id)))
-  print("tag dictionary size " + str(len(tag_to_id)))
+  logging.debug("word dictionary size " + str(len(word_to_id)))
+  logging.debug("tag dictionary size " + str(len(tag_to_id)))
 
   train_word, train_tag = _file_to_word_ids(train_path, word_to_id, tag_to_id)
-  print("train dataset: " + str(len(train_word)) + " " + str(len(train_tag)))
+  logging.debug("train dataset: " + str(len(train_word)) + " " + str(len(train_tag)))
   dev_word, dev_tag = _file_to_word_ids(dev_path, word_to_id, tag_to_id)
-  print("dev dataset: " + str(len(dev_word)) + " " + str(len(dev_tag)))
+  logging.debug("dev dataset: " + str(len(dev_word)) + " " + str(len(dev_tag)))
   test_word, test_tag = _file_to_word_ids(test_path, word_to_id, tag_to_id)
-  print("test dataset: " + str(len(test_word)) + " " + str(len(test_tag)))
+  logging.debug("test dataset: " + str(len(test_word)) + " " + str(len(test_tag)))
   vocab_size = len(word_to_id)
   return (train_word, train_tag, dev_word, dev_tag, test_word, test_tag, vocab_size)
 
@@ -187,7 +187,7 @@ def main():
   Test load_data method and iterator method
   """
   data_path = "/mnt/pypi/deepnlp/deepnlp/pos/data/zh"
-  print("Data Path: " + data_path)
+  logging.debug("Data Path: " + data_path)
   train_word, train_tag, dev_word, dev_tag, test_word, test_tag, _ = load_data(data_path)
 
   iter = iterator(train_word, train_tag, 1, 30)
@@ -196,11 +196,11 @@ def main():
     count += 1
     #rint (x)
     #rint (y)
-  print("Train Total Epoch/Sentence number Count:" + str(count))
+  logging.debug("Train Total Epoch/Sentence number Count:" + str(count))
 
   ids = [1, 4, 2, 7, 20]
   sentence = word_ids_to_sentence(data_path, ids)
-  #print (sentence)
+  #logging.debug (sentence)
 
 if __name__ == '__main__':
   main()

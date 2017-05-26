@@ -23,8 +23,8 @@ class Session(object):
 
 if __name__ == "__main__":
     sentence = "我要看小区景观"
-    print(jieba.lcut(sentence))
+    logging.debug(jieba.lcut(sentence))
     jieba.add_word("小区景观")
-    print(jieba.lcut(sentence))
+    logging.debug(jieba.lcut(sentence))
     jieba.del_word("小区景观")
-    print(jieba.lcut(sentence))
+    logging.debug(jieba.lcut(sentence))

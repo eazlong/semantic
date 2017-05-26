@@ -3,6 +3,7 @@
 import re
 import jieba
 import collections
+import logging
 from tensorflow.python.platform import gfile
 
 _UNK = "_UNK"
@@ -30,14 +31,14 @@ def del_keys(file_name, out_file_name):
         data = f.read()
         pattern = re.compile(r'\[(.*?)\]')
         str = re.sub(pattern, '', data)
-        with open(out_file_name, 'w') as fw:
+        with open(out_file_name, 'w', encoding='utf-8') as fw:
             fw.write(str)
 
 #
 
 
 def add_new_vacab(vocab_file, new_vocab):
-    with open(vocab_file, 'a+') as f:
+    with open(vocab_file, 'a+', encoding='utf-8') as f:
         f.write(new_vocab + '\n')
         jieba.add_word(new_vocab)
 ''' 生成训练标签对 '''
@@ -64,7 +65,7 @@ def genarate_train_data(file_name, word_to_ids, labels, vocab_file):
                 if data.isdigit():
                     data = _NUM
                 if data not in word_to_ids:
-                    print("add %s to words" % data)
+                    logging.debug("add %s to words" % data)
                     add_new_vacab(vocab_file, data)
                     word_to_ids[data] = len(word_to_ids)
                 a.append(data)
@@ -79,7 +80,7 @@ def genarate_train_data(file_name, word_to_ids, labels, vocab_file):
                 l.extend([labels.index('none')] * len(val))
 
             train_data.append((vocab, l))
-        print(a, labels)
+        logging.debug("%s, %s" % (a, labels))
     return train_data
 
 ''' read data and seg to vocab list '''
@@ -150,7 +151,7 @@ def file_to_word_ids(filename, word_to_id):
 def data_to_word_ids(data, word_to_id, numbs=[]):
     ids = []
     for word in data:
-        print(word)
+        logging.debug(word)
         if word.isdigit():
             numbs.extend(word)
             word = _NUM
@@ -166,4 +167,4 @@ if __name__ == '__main__':
     keys = get_keys(df)
     word_to_ids, _ = create_vocabulary_from_data_file(vf, df)
     train_data = genarate_train_data(df, word_to_ids, keys, vf)
-    print(train_data)
+    logging.debug(train_data)

@@ -56,7 +56,7 @@ $ python ptb_word_lm.py --data_path=simple-examples/data/
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
+import logging
 import time
 
 import numpy as np
@@ -86,7 +86,7 @@ class PTBModel(object):
   """The PTB model."""
 
   def __init__(self, g, is_training, config, category, class_number=4, inited=False):
-    print(tf.get_default_graph())
+    logging.debug(tf.get_default_graph())
     self.batch_size = batch_size = config.batch_size
     self.num_steps = num_steps = config.num_steps
     size = config.hidden_size
@@ -310,7 +310,7 @@ def run_epoch(session, model, word_data, tag_data, eval_op, verbose=False):
     predict_id.append(int(np.argmax(logits)))
 
     # if verbose:  # and step % (epoch_size // 10) == 10:
-    #   print("%.3f perplexity: %.3f speed: %.0f wps" %
+    #   logging.debug("%.3f perplexity: %.3f speed: %.0f wps" %
     #         (step * 1.0 / epoch_size, np.exp(costs / iters),
     #          iters * model.batch_size / (time.time() - start_time)))
 
@@ -319,7 +319,7 @@ def run_epoch(session, model, word_data, tag_data, eval_op, verbose=False):
     #   if step % (epoch_size // 10) == 10:
     #     checkpoint_path = os.path.join(FLAGS.pos_train_dir, "pos.ckpt")
     #     model.saver.save(session, checkpoint_path)
-    #     print("Model Saved... at time step " + str(step))
+    #     logging.debug("Model Saved... at time step " + str(step))
 
   return np.exp(costs / iters), predict_id
 
@@ -342,7 +342,7 @@ def run_epoch(session, model, word_data, tag_data, eval_op, verbose=False):
 #     cost, logits, _ = session.run(fetches, feed_dict)
 #     costs += cost
 #     iters += model.num_steps
-#     print(logits)
+#     logging.debug(logits)
 #     predict_id.append(int(np.argmax(logits)))
 
 #   return np.exp(costs / iters), predict_id
@@ -351,7 +351,7 @@ def run_epoch(session, model, word_data, tag_data, eval_op, verbose=False):
 class Predictor:
 
   def __init__(self, category, label_size, ckpt_path, step):
-    print("Step", step)
+    logging.debug("Step %d" % step)
     self._config = get_config()
     self._config.num_steps = step
     self._category = category
@@ -373,8 +373,8 @@ class Predictor:
       self.predict_model = PTBModel(self.g, is_training=False, config=eval_config, category=self._category,
                                     class_number=self.label_size, inited=True)
 
-  def __init_model(self):
-    if not self.inited:
+  def __init_model(self, reload):
+    if (not self.inited) or reload:
       self.predict_session = tf.InteractiveSession()
       tf.initialize_all_variables().run()
       ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
@@ -405,20 +405,20 @@ class Predictor:
 
           train_perplexity, _ = run_epoch(sess, self.train_model, word_data,
                                           target_data, self.train_model.train_op, verbose=True)
-          print("Epoch: %d Learning rate: %.3f, perplexity: %.3f" %
-                (i + 1, sess.run(self.train_model.lr), train_perplexity))
+          logging.debug("Epoch: %d Learning rate: %.3f, perplexity: %.3f" %
+                        (i + 1, sess.run(self.train_model.lr), train_perplexity))
 
         # 训练完成，保存模型
         tf.train.Saver().save(sess, os.path.join(self._checkpoint_dir, self._category + ".ckpt"))
       sess.close()
 
-  def predict(self, sentense):
+  def predict(self, sentense, reload):
     with self.g.as_default():
-      self.__init_model()
+      self.__init_model(reload)
       sess = self.predict_session
       labels = [0] * len(sentense)
       p, predict_ids = run_epoch(sess, self.predict_model, sentense, labels, tf.no_op())
-      print(p, predict_ids)
+      logging.debug("%s, %s" % (p, predict_ids))
       return predict_ids
 
 if __name__ == "__main__":
