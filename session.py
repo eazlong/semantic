@@ -2,7 +2,6 @@
     this class is for session manage.
 """
 from enum import Enum
-import jieba
 
 State = Enum("State", ("Init", "Start", "Run", "Finish"))
 
@@ -22,9 +21,13 @@ class Session(object):
         content = args.get('content')
 
 if __name__ == "__main__":
-    sentence = "我要看小区景观"
-    logging.debug(jieba.lcut(sentence))
-    jieba.add_word("小区景观")
-    logging.debug(jieba.lcut(sentence))
-    jieba.del_word("小区景观")
-    logging.debug(jieba.lcut(sentence))
+    # sentence = "我要看小区景观"
+    # logging.debug(jieba.lcut(sentence))
+    # jieba.add_word("小区景观")
+    # logging.debug(jieba.lcut(sentence))
+    # jieba.del_word("小区景观")
+    # logging.debug(jieba.lcut(sentence))
+    # l = [(1, 2), (3, 4)]
+    # print(l * 2)
+    import numpy as np
+    print(1 + np.array(False, float))

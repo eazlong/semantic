@@ -39,7 +39,7 @@ class Classifier(object):
                 self.dropout_keep_prob = tf.placeholder(tf.float32)
                 self.batch_size = 32
                 num_filters = 128
-                filter_sizes = [3, 4, 5]
+                filter_sizes = [2, 3, 4, 5]
                 pooled_outputs = []
                 for i, filter_size in enumerate(filter_sizes):
                     with g.name_scope("conv-maxpool-%s" % filter_size):

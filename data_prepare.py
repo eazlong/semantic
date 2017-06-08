@@ -40,11 +40,11 @@ def del_keys(file_name, out_file_name):
 def add_new_vacab(vocab_file, new_vocab):
     with open(vocab_file, 'a+', encoding='utf-8') as f:
         f.write(new_vocab + '\n')
-        jieba.add_word(new_vocab)
+        # jieba.add_word(new_vocab)
 ''' 生成训练标签对 '''
 
 
-def genarate_train_data(file_name, word_to_ids, labels, vocab_file):
+def genarate_train_data(file_name, word_to_ids, labels, vocab_file, user_dict):
     train_data = []
     with open(file_name, encoding='utf-8') as f:
         a = []
@@ -62,8 +62,12 @@ def genarate_train_data(file_name, word_to_ids, labels, vocab_file):
                     l.extend([labels.index('none')] * len(val))
 
                 data = item[2]
-                if data.isdigit():
-                    data = _NUM
+                type = item[1]
+
+                # 将list转化为统一的type进行训练
+                if type in user_dict and user_dict[type]['type'] == 'List':
+                    data = type
+
                 if data not in word_to_ids:
                     logging.debug("add %s to words" % data)
                     add_new_vacab(vocab_file, data)
@@ -145,16 +149,28 @@ def file_to_word_ids(filename, word_to_id):
     data = read_data(filename)
     return [word_to_id[word] for word in data]
 
+
+# find in user dict
+def find_in_dict(dict, word):
+    for d in dict:
+        for v in dict[d]['dict'].items():
+            if word == v[0]:
+                return d, word
+    return None, None
+
 # data to word ids
 
 
-def data_to_word_ids(data, word_to_id, numbs=[]):
+def data_to_word_ids(data, word_to_id, user_dict):
     ids = []
     for word in data:
-        logging.debug(word)
         if word.isdigit():
-            numbs.extend(word)
-            word = _NUM
+            word = 'num'
+        else:
+            k, _ = find_in_dict(user_dict, word)
+            if k != None:
+                word = k
+
         if word in word_to_id:
             ids.append(word_to_id[word])
         else:

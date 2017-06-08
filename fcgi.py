@@ -64,6 +64,15 @@ def load_labels(appid):
         return [x.strip() for x in data]
 
 
+# 装载用户字典
+
+
+def load_dict(file):
+    with open(file, 'r', encoding='utf-8') as f:
+        data = f.read()
+        return json.loads(data)
+
+
 def train(data):
     try:
         json_data = json.loads(data.decode('utf-8'))
@@ -89,6 +98,9 @@ def train(data):
             result = map(lambda x: x.strip() + "\n", data)
             f.writelines(result)
 
+        user_dict = load_dict(data_dir(appid) + "user_dict.txt")
+        load_dict_for_jiaba(user_dict)
+
         # 创建分类后的数据文件
         data_list = []
         for d in train_data.items():
@@ -100,19 +112,18 @@ def train(data):
             data_list.append((df, category))
 
             with open(df, "w", encoding='utf-8') as f:
-                for i in range(10):
-                    for line in t_data:
-                        f.write(line + "\r\n")
-                        pattern = re.compile(r'\[.*?\]')
-                        line = re.sub(pattern, '', line)
-                        classifer_data[line] = operation
+                for line in t_data:
+                    f.write(line + "\r\n")
+                    pattern = re.compile(r'\[.*?\]')
+                    line = re.sub(pattern, '', line)
+                    classifer_data[line] = operation
 
         for data in data_list:
             df, category = data
             vf = vocab_file(appid, category)
             dp.create_vocabulary_from_data_file(vf, df)
-            step = 30
-            t = tagger.Tagger(df, vf, category, data_dir(appid) + category, step)
+            step = 2
+            t = tagger.Tagger(df, vf, category, data_dir(appid) + category, user_dict, step)
             t.train()
 
         vf = vocab_file(appid, CLASSIFIER)
@@ -122,10 +133,32 @@ def train(data):
         calssifier.train(classifer_data)
     except Exception as e:
         logging.error(e)
-        logging.debug(format_tb(e.__traceback__)[0])
+        logging.debug(format_tb(e.__traceback__))
         return False
 
     return True
+
+# 为结巴分词载入词表
+
+
+def load_dict_for_jiaba(dict):
+    for d in dict:
+        for v in dict[d]['dict'].items():
+            logging.debug("add to dict %s" % v[0])
+            if not v[0].isdigit():
+                jieba.add_word(v[0])
+
+
+@app.route('/dict', methods=['POST'])
+def user_dict():
+    data = request.get_data()
+    json_data = json.loads(data.decode('utf-8'))
+    appid = json_data['appid']
+    user_dict = json_data['data']
+    with open(data_dir(appid) + "user_dict.txt", 'w', encoding='utf-8') as f:
+        f.write(json.dumps(user_dict))
+    load_dict_for_jiaba(user_dict)
+    return make_response(jsonify({'error': 'OK'}), 200)
 
 
 @app.route('/login', methods=['POST'])
@@ -142,7 +175,7 @@ def login():
                 appid = {}
                 appid['appid'] = data[2]
                 return jsonify(appid)
-    return 'user name or password error', 500
+    return make_response(jsonify({'error': 'user name or password error'}), 500)
 
 
 @app.route('/query', methods=['GET'])
@@ -160,6 +193,8 @@ def query():
                     l = f.readlines()
                     l = list(set(l))
                     result[name] = l
+    user_dict = load_dict(data_dir(appid) + "user_dict.txt")
+    result['dict'] = user_dict
     return jsonify(result)
 
 
@@ -179,7 +214,10 @@ def predict(json_data, result):
         vf = vocab_file(appid, CLASSIFIER)
         _, v = dp.build_vocabulary(vf)
         labels = load_labels(appid)
-        jieba.load_userdict(vf)
+        # jieba.load_userdict(vf)
+
+        user_dict = load_dict(data_dir(appid) + "user_dict.txt")
+        load_dict_for_jiaba(user_dict)
 
         reload = False
         if 'reload' in e:
@@ -198,13 +236,13 @@ def predict(json_data, result):
         vf = vocab_file(appid, category)
         if (operation not in e) or reload:
             e[operation] = tagger.Tagger(data_file(appid, operation), vf,
-                                         category, data_dir(appid) + category)
+                                         category, data_dir(appid) + category, user_dict)
 
         pairs = e[operation].determine(sentence)
 
     except Exception as e:
         logging.error(e)
-        logging.debug(format_tb(e.__traceback__)[0])
+        logging.debug(format_tb(e.__traceback__))
         return e
 
     result['appid'] = appid
@@ -225,7 +263,7 @@ def predict_thread(cond, args):
 @app.route('/predict', methods=['POST'])
 def request_predict():
     logging.info("----------------------------------------------------------------")
-    logging.info(request.data)
+    logging.info(request.data.decode('utf_8'))
     logging.info("----------------------------------------------------------------")
     data = request.get_data()
     json_data = json.loads(data.decode('utf-8'))

@@ -66,7 +66,7 @@ import reader
 import os
 
 flags = tf.flags
-logging = tf.logging
+# logging = tf.logging
 
 flags.DEFINE_string(
     "model", "small",
@@ -94,6 +94,8 @@ class PTBModel(object):
     hidden_size = config.hidden_size
     keep_prob = config.keep_prob
     layer_num = config.num_layers
+    self.lstm = config.lstm
+    self.category = category
     # self.is_training = is_training
 
     initializer = tf.random_uniform_initializer(-config.init_scale, config.init_scale)
@@ -106,100 +108,15 @@ class PTBModel(object):
             "embedding", [vocab_size, size], dtype=data_type())
 
       inputs = tf.nn.embedding_lookup(embedding, self._input_data)
-
-      '''bldirectional_rnn'''
-      # # ** 1.LSTM 层
-      # lstm_fw_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size, forget_bias=1.0, state_is_tuple=True)
-      # lstm_bw_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size, forget_bias=1.0, state_is_tuple=True)
-      # # ** 2.dropout
-      # lstm_fw_cell = tf.nn.rnn_cell.DropoutWrapper(
-      #     cell=lstm_fw_cell, input_keep_prob=1.0, output_keep_prob=keep_prob)
-      # lstm_bw_cell = tf.nn.rnn_cell.DropoutWrapper(
-      #     cell=lstm_bw_cell, input_keep_prob=1.0, output_keep_prob=keep_prob)
-      # # ** 3.多层 LSTM
-      # cell_fw = tf.nn.rnn_cell.MultiRNNCell([lstm_fw_cell] * layer_num, state_is_tuple=True)
-      # cell_bw = tf.nn.rnn_cell.MultiRNNCell([lstm_bw_cell] * layer_num, state_is_tuple=True)
-      # # ** 4.初始状态
-      # initial_state_fw = cell_fw.zero_state(batch_size, tf.float32)
-      # initial_state_bw = cell_bw.zero_state(batch_size, tf.float32)
-
-      # inputs_list = [tf.squeeze(s, [1]) for s in tf.split(1, num_steps, inputs)]
-
-      # try:
-      #   outputs, _, _ = tf.nn.bidirectional_rnn(cell_fw, cell_bw, inputs_list,
-      #                                           initial_state_fw=initial_state_fw, initial_state_bw=initial_state_bw, dtype=tf.float32)
-      # except Exception:  # Old TensorFlow version only returns outputs not states
-      #   outputs = tf.nn.bidirectional_rnn(
-      #       cell_fw, cell_bw, inputs_list, initial_state_fw=initial_state_fw, initial_state_bw=initial_state_bw, dtype=tf.float32)
-      # output = tf.reshape(tf.concat(1, outputs), [-1, config.hidden_size * 2])
-
-      # softmax_w = tf.get_variable(
-      #     "softmax_w", [size * 2, class_number], dtype=data_type())
-      # softmax_b = tf.get_variable("softmax_b", [class_number], dtype=data_type())
-      # logits = tf.matmul(output, softmax_w) + softmax_b
-
-      # correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32),
-      #                               tf.reshape(self._targets, [-1]))
-      # accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-      # loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-      #     labels=tf.reshape(self._targets, [-1]), logits=logits)
-
-      '''lstm'''
-      # Slightly better results can be obtained with forget gate biases
-      # initialized to 1 but the hyperparameters of the model would need to be
-      # different than reported in the paper.
-      lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(size, forget_bias=0.0, state_is_tuple=True)
-      if is_training and config.keep_prob < 1:
-        lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
-            lstm_cell, output_keep_prob=config.keep_prob)
-      cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * config.num_layers, state_is_tuple=True)
-
-      self._initial_state = cell.zero_state(batch_size, data_type())
-
-      if is_training and config.keep_prob < 1:
-        inputs = tf.nn.dropout(inputs, config.keep_prob)
-
-      # Simplified version of tensorflow.models.rnn.rnn.py's rnn().
-      # This builds an unrolled LSTM for tutorial purposes only.
-      # In general, use the rnn() or state_saving_rnn() from rnn.py.
-      #
-      # The alternative version of the code below is:
-      #
-
-      # inputs = [tf.squeeze(input_, [1])
-      #           for input_ in tf.split(1, num_steps, inputs)]
-      # outputs, state = rnn.rnn(cell, inputs, initial_state=self._initial_state)
-      outputs = []
-      state = self._initial_state
-      with tf.variable_scope(category):
-        for time_step in range(num_steps):
-          if time_step > 0:
-            tf.get_variable_scope().reuse_variables()
-          (cell_output, state) = cell(inputs[:, time_step, :], state)
-          outputs.append(cell_output)
-
-      output = tf.reshape(tf.concat(1, outputs), [-1, size])
-
-      with tf.variable_scope(category):
-        softmax_w = tf.get_variable(
-            "softmax_w", [size, class_number], dtype=data_type())
-        softmax_b = tf.get_variable("softmax_b", [class_number], dtype=data_type())
-      logits = tf.matmul(output, softmax_w) + softmax_b
-
-      correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32),
-                                    tf.reshape(self._targets, [-1]))
-      accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-      loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-          labels=tf.reshape(self._targets, [-1]), logits=logits)
-
-      # loss = tf.nn.seq2seq.sequence_loss_by_example(
-      #     logits=[logits],
-      #     targets=[tf.reshape(self._targets, [-1])],
-      #     weights=[tf.ones([batch_size * num_steps], dtype=data_type())])
-
+      if config.lstm:
+        loss, logits, state = self.__lstm(inputs, num_steps, hidden_size, batch_size,
+                                          class_number, layer_num, keep_prob)
+        self._final_state = state
+      else:
+        loss, logits = self.__bldirection_lstm(inputs, num_steps, hidden_size, batch_size,
+                                               class_number, layer_num, keep_prob)
       cost = tf.reduce_sum(loss) / batch_size  # loss [time_step]
       self._cost = cost
-      self._final_state = state
       self._logits = logits
 
       # loss = tf.nn.seq2seq.sequence_loss_by_example(
@@ -216,13 +133,107 @@ class PTBModel(object):
       tvars = tf.trainable_variables()
       grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars),
                                         config.max_grad_norm)
-      #optimizer = tf.train.GradientDescentOptimizer(self._lr)
+      # optimizer = tf.train.GradientDescentOptimizer(self._lr)
       optimizer = tf.train.AdamOptimizer(self._lr)
       self._train_op = optimizer.apply_gradients(zip(grads, tvars))
 
       self._new_lr = tf.placeholder(
           tf.float32, shape=[], name="new_learning_rate")
       self._lr_update = tf.assign(self._lr, self._new_lr)
+
+  def __bldirection_lstm(self, inputs, num_steps, hidden_size, batch_size, class_number, layer_num, keep_prob):
+    '''bldirectional_rnn'''
+    #** 1.LSTM 层
+    lstm_fw_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size, forget_bias=1.0, state_is_tuple=True)
+    lstm_bw_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size, forget_bias=1.0, state_is_tuple=True)
+    # ** 2.dropout
+    lstm_fw_cell = tf.nn.rnn_cell.DropoutWrapper(
+        cell=lstm_fw_cell, input_keep_prob=1.0, output_keep_prob=keep_prob)
+    lstm_bw_cell = tf.nn.rnn_cell.DropoutWrapper(
+        cell=lstm_bw_cell, input_keep_prob=1.0, output_keep_prob=keep_prob)
+    # ** 3.多层 LSTM
+    cell_fw = tf.nn.rnn_cell.MultiRNNCell([lstm_fw_cell] * layer_num, state_is_tuple=True)
+    cell_bw = tf.nn.rnn_cell.MultiRNNCell([lstm_bw_cell] * layer_num, state_is_tuple=True)
+    # ** 4.初始状态
+    initial_state_fw = cell_fw.zero_state(batch_size, tf.float32)
+    initial_state_bw = cell_bw.zero_state(batch_size, tf.float32)
+
+    inputs_list = [tf.squeeze(s, [1]) for s in tf.split(1, num_steps, inputs)]
+
+    try:
+      outputs, _, _ = tf.nn.bidirectional_rnn(cell_fw, cell_bw, inputs_list,
+                                              initial_state_fw=initial_state_fw, initial_state_bw=initial_state_bw, dtype=tf.float32)
+    except Exception:  # Old TensorFlow version only returns outputs not states
+      outputs = tf.nn.bidirectional_rnn(
+          cell_fw, cell_bw, inputs_list, initial_state_fw=initial_state_fw, initial_state_bw=initial_state_bw, dtype=tf.float32)
+    output = tf.reshape(tf.concat(1, outputs), [-1, hidden_size * 2])
+
+    softmax_w = tf.get_variable(
+        "softmax_w", [hidden_size * 2, class_number], dtype=data_type())
+    softmax_b = tf.get_variable("softmax_b", [class_number], dtype=data_type())
+    logits = tf.matmul(output, softmax_w) + softmax_b
+
+    correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32),
+                                  tf.reshape(self._targets, [-1]))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
+        labels=tf.reshape(self._targets, [-1]), logits=logits)
+    return loss, logits
+
+  def __lstm(self, inputs, num_steps, hidden_size, batch_size, class_number, layer_num, keep_prob):
+    '''lstm'''
+    # Slightly better results can be obtained with forget gate biases
+    # initialized to 1 but the hyperparameters of the model would need to be
+    # different than reported in the paper.
+    lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size, forget_bias=0.0, state_is_tuple=True)
+    if keep_prob < 1:
+      lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
+          lstm_cell, output_keep_prob=keep_prob)
+    cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * layer_num, state_is_tuple=True)
+
+    self._initial_state = cell.zero_state(batch_size, data_type())
+
+    if keep_prob < 1:
+      inputs = tf.nn.dropout(inputs, keep_prob)
+
+    # Simplified version of tensorflow.models.rnn.rnn.py's rnn().
+    # This builds an unrolled LSTM for tutorial purposes only.
+    # In general, use the rnn() or state_saving_rnn() from rnn.py.
+    #
+    # The alternative version of the code below is:
+    #
+
+    # inputs = [tf.squeeze(input_, [1])
+    #           for input_ in tf.split(1, num_steps, inputs)]
+    # outputs, state = rnn.rnn(cell, inputs, initial_state=self._initial_state)
+    outputs = []
+    state = self._initial_state
+    with tf.variable_scope(self.category):
+      for time_step in range(num_steps):
+        if time_step > 0:
+          tf.get_variable_scope().reuse_variables()
+        (cell_output, state) = cell(inputs[:, time_step, :], state)
+        outputs.append(cell_output)
+
+    output = tf.reshape(tf.concat(1, outputs), [-1, hidden_size])
+
+    with tf.variable_scope(self.category):
+      softmax_w = tf.get_variable(
+          "softmax_w", [hidden_size, class_number], dtype=data_type())
+      softmax_b = tf.get_variable("softmax_b", [class_number], dtype=data_type())
+    logits = tf.matmul(output, softmax_w) + softmax_b
+
+    correct_prediction = tf.equal(tf.cast(tf.argmax(logits, 1), tf.int32),
+                                  tf.reshape(self._targets, [-1]))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
+        labels=tf.reshape(self._targets, [-1]), logits=logits)
+
+    # loss = tf.nn.seq2seq.sequence_loss_by_example(
+    #     logits=[logits],
+    #     targets=[tf.reshape(self._targets, [-1])],
+    #     weights=[tf.ones([batch_size * num_steps], dtype=data_type())])
+    return loss, logits, state
 
   def assign_lr(self, session, lr_value):
     session.run(self._lr_update, feed_dict={self._new_lr: lr_value})
@@ -233,7 +244,8 @@ class PTBModel(object):
 
   @property
   def initial_state(self):
-    return self._initial_state
+    if self.lstm:
+      return self._initial_state
 
   @property
   def input_data(self):
@@ -278,6 +290,7 @@ class SmallConfig(object):
   lr_decay = 1 / 1.15
   batch_size = 1
   vocab_size = 2000
+  lstm = False
 
 
 def get_config():
@@ -287,24 +300,33 @@ def get_config():
     raise ValueError("Invalid model: %s", FLAGS.model)
 
 
-def run_epoch(session, model, word_data, tag_data, eval_op, verbose=False):
+def run_epoch(session, model, word_data, tag_data, eval_op, lstm=True, verbose=False):
   """Runs the model on the given data."""
   epoch_size = ((len(word_data) // model.batch_size) - 1) // model.num_steps
   start_time = time.time()
   costs = 0.0
   iters = 0
-  state = session.run(model.initial_state)
+  if lstm:
+    state = session.run(model.initial_state)
   predict_id = []
   for step, (x, y) in enumerate(reader.iterator(word_data, tag_data, model.batch_size,
                                                 model.num_steps)):
-    fetches = [model.cost, model.final_state, model.logits, eval_op]
+    #logging.debug(x)
+    if lstm:
+      fetches = [model.cost, model.final_state, model.logits, eval_op]
+    else:
+      fetches = [model.cost, model.logits, eval_op]
     feed_dict = {}
     feed_dict[model.input_data] = x
     feed_dict[model.targets] = y
-    for i, (c, h) in enumerate(model.initial_state):
-      feed_dict[c] = state[i].c
-      feed_dict[h] = state[i].h
-    cost, state, logits, _ = session.run(fetches, feed_dict)
+    if lstm:
+      for i, (c, h) in enumerate(model.initial_state):
+        feed_dict[c] = state[i].c
+        feed_dict[h] = state[i].h
+    if lstm:
+      cost, state, logits, _ = session.run(fetches, feed_dict)
+    else:
+      cost, logits, _ = session.run(fetches, feed_dict)
     costs += cost
     iters += model.num_steps
     predict_id.append(int(np.argmax(logits)))
@@ -322,30 +344,6 @@ def run_epoch(session, model, word_data, tag_data, eval_op, verbose=False):
     #     logging.debug("Model Saved... at time step " + str(step))
 
   return np.exp(costs / iters), predict_id
-
-
-# def run_epoch(session, model, word_data, tag_data, eval_op, verbose=False):
-#   """Runs the model on the given data."""
-#   epoch_size = ((len(word_data) // model.batch_size) - 1) // model.num_steps
-
-#   start_time = time.time()
-#   costs = 0.0
-#   iters = 0
-
-#   predict_id = []
-#   for step, (x, y) in enumerate(reader.iterator(word_data, tag_data, model.batch_size,
-#                                                 model.num_steps)):
-#     fetches = [model.cost, model.logits, eval_op]  # eval_op define the m.train_op or m.eval_op
-#     feed_dict = {}
-#     feed_dict[model.input_data] = x
-#     feed_dict[model.targets] = y
-#     cost, logits, _ = session.run(fetches, feed_dict)
-#     costs += cost
-#     iters += model.num_steps
-#     logging.debug(logits)
-#     predict_id.append(int(np.argmax(logits)))
-
-#   return np.exp(costs / iters), predict_id
 
 
 class Predictor:
@@ -375,6 +373,7 @@ class Predictor:
 
   def __init_model(self, reload):
     if (not self.inited) or reload:
+      logging.debug("reload model from %s" % self._checkpoint_dir)
       self.predict_session = tf.InteractiveSession()
       tf.initialize_all_variables().run()
       ckpt = tf.train.get_checkpoint_state(self._checkpoint_dir)
@@ -400,26 +399,83 @@ class Predictor:
           target_data = []
           for j in rarray:
             x = train_data[j]
+            #append = [0] * (self._config.num_steps - len(x[0]))
+            # x[0].extend(append)
             word_data.extend(x[0])
+            # x[1].extend(append)
             target_data.extend(x[1])
 
           train_perplexity, _ = run_epoch(sess, self.train_model, word_data,
-                                          target_data, self.train_model.train_op, verbose=True)
+                                          target_data, self.train_model.train_op, self._config.lstm, verbose=True)
           logging.debug("Epoch: %d Learning rate: %.3f, perplexity: %.3f" %
                         (i + 1, sess.run(self.train_model.lr), train_perplexity))
 
         # 训练完成，保存模型
         tf.train.Saver().save(sess, os.path.join(self._checkpoint_dir, self._category + ".ckpt"))
-      sess.close()
 
   def predict(self, sentense, reload):
     with self.g.as_default():
       self.__init_model(reload)
       sess = self.predict_session
       labels = [0] * len(sentense)
-      p, predict_ids = run_epoch(sess, self.predict_model, sentense, labels, tf.no_op())
+      p, predict_ids = run_epoch(sess, self.predict_model, sentense,
+                                 labels, tf.no_op(), self._config.lstm)
       logging.debug("%s, %s" % (p, predict_ids))
       return predict_ids
 
 if __name__ == "__main__":
-  tf.app.run()
+  import data_prepare as dp
+  import jieba
+
+  logging.basicConfig(level=logging.DEBUG,
+                      format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                      datefmt='%a, %d %b %Y %H:%M:%S')
+
+  data_file = "data/test9/connector.data"
+  vocab_file = "data/test9/test9_connector.vocabs"
+  keys = dp.get_keys(data_file)
+  word_to_id, vocabs = dp.create_vocabulary_from_data_file(vocab_file, data_file)
+  train_data = dp.genarate_train_data(
+      data_file, word_to_id, keys, vocab_file)
+
+  train_data = train_data * 10
+  ckpt_path = "data/test9/test9_connector"
+  p = Predictor("connector", len(keys), ckpt_path, 5)
+  p.train(train_data, vocabs, False)
+
+  # ss = ['我想要看售楼中心的第二张图片',
+  #       '我想要看池塘的第三张图片',
+  #       '我想要看78平户型样板间的第八张图片',
+  #       '我想要看107平户型样板间的厨房',
+  #       '我想要看78平户型样板间的阳台',
+  #       '我想看花园的第四张图片',
+  #       '我想要看107平户型样板间的第十张图片',
+  #       '我想要看78平户型样板间的厕所',
+  #       '我想要看小区景观的第一张图片',
+  #       '我想要看107平户型样板间的第五张图片',
+  #       '我想要看水池的第二张图片',
+  #       '我想要看售楼中心的第二张图片',
+  #       '我想要看池塘的第二张图片',
+  #       '我想要看国务院的第八张图片',
+  #       '我想要看200平别墅的第二张图片']
+  ss = ['明天的天气怎么样',
+        '今天的天气怎么样',
+        '明天北京的天气',
+        '后天深圳的天气怎么样',
+        '星期五的天气怎么样',
+        '下周一北京的天气怎么样',
+        '下周一东京的天气怎么样']
+  for s in ss:
+    data = jieba.lcut(s)
+    numb = []
+    ids = dp.data_to_word_ids(data, word_to_id, numb)
+    print("%s,%s,%s" % (vocab_file, data, ids))
+    tag_ids = p.predict(ids, False)
+    pairs = {}
+    i = 0
+    for tag_id in tag_ids:
+      if tag_id != 0:
+        pairs[keys[tag_id]] = data[i]
+      i = i + 1
+
+    print("pairs %s" % pairs)
