@@ -205,10 +205,21 @@ def traim_thread():
         return make_response(jsonify({'error': 'train failed'}), 500)
 
 
+def process_chinese_number(s):
+    data = {'一': '1', '二': '2', '两': '2', '三': '3', '四': '4', '五': '5', '六': '6',
+            '七': '7', '八': '8', '九': '9', '十': '10', '百': '00', '千': '000', '万': '0000'}
+    for d in s:
+        if d in data:
+            logging.debug('**************%s' % (data[d]))
+            s = s.replace(d, data[d])
+    return s
+
+
 def predict(json_data, result):
     try:
         appid = json_data['appid']
         sentence = json_data['sentence']
+        sentence = process_chinese_number(sentence)
         e = engines[appid]
         vf = vocab_file(appid, CLASSIFIER)
         _, v = dp.build_vocabulary(vf)

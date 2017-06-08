@@ -42,23 +42,14 @@ class Tagger(object):
         self.model.train(train_data, self.vocabs, retrain)
         self.trained = True
 
-    def process_chinese_number( self, s ):
-        data = {'一':'1','二':'2','两':'2','三':'3','四':'4','五':'5','六':'6','七':'7','八':'8','九':'9','十':'10','百':'00','千':'000','万':'0000'}
-        for d in s:
-            if d in data:
-                logging.debug('**************%s'%(data[d]))
-                s = s.replace(d,data[d])
-        return s
-  
-		
     def determine(self, sentense, reload=False):
         if (not self.init) or reload:
             self.word_to_id, self.vocabs = dp.build_vocabulary(self.vocab_file)
             self.init = True
-        sentense = re.sub(r"[\t\r\n\u3000+\.\!\/_,x$%^*(+\"\']+|[·+——！，。：；》《？、?~@#￥%……&*（）【】”“]+|(\[.*?\])", "", sentense)
-        
-        sentense = self.process_chinese_number(sentense);	
-        #print(sentense)
+        sentense = re.sub(
+            r"[\t\r\n\u3000+\.\!\/_,x$%^*(+\"\']+|[·+——！，。：；》《？、?~@#￥%……&*（）【】”“]+|(\[.*?\])", "", sentense)
+
+        print(sentense)
         data = jieba.lcut(sentense)
         ids = dp.data_to_word_ids(data, self.word_to_id, self.user_dict)
         logging.debug("%s,%s,%s" % (self.vocab_file, data, ids))
