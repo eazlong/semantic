@@ -75,7 +75,7 @@ class Classifier(object):
     # 将句子转化为向量
     def __sentense2feature(self, sentense):
         words = jieba.lcut(sentense)
-        logging.debug("words %s" % words)
+        logging.debug( words)
         features = np.zeros(len(self.lex))
         for word in words:
             if word.isdigit():

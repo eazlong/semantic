@@ -144,7 +144,6 @@ def train(data):
 def load_dict_for_jiaba(dict):
     for d in dict:
         for v in dict[d]['dict'].items():
-            logging.debug("add to dict %s" % v[0])
             if not v[0].isdigit():
                 jieba.add_word(v[0])
 
