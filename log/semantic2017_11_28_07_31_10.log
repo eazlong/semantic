@@ -1,0 +1,28 @@
+Tue, 28 Nov 2017 07:31:10 fcgi.py[line:271] INFO wait for singal!
+Tue, 28 Nov 2017 07:31:10 fcgi.py[line:331] INFO <Condition(<unlocked _thread.RLock object owner=0 count=0 at 0x7fb7249b5de0>, 1)>
+Tue, 28 Nov 2017 07:31:10 fcgi.py[line:271] INFO wait for singal!
+Tue, 28 Nov 2017 07:31:10 fcgi.py[line:331] INFO <Condition(<unlocked _thread.RLock object owner=0 count=0 at 0x7fb6f1876c90>, 1)>
+Tue, 28 Nov 2017 07:31:10 _internal.py[line:87] INFO  * Running on http://0.0.0.0:8003/ (Press CTRL+C to quit)
+Tue, 28 Nov 2017 07:31:14 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:31:14] "OPTIONS /query?appid=123456 HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:31:14 fcgi.py[line:188] INFO get request form appid 123456
+Tue, 28 Nov 2017 07:31:14 fcgi.py[line:193] INFO labels, .txt
+Tue, 28 Nov 2017 07:31:14 fcgi.py[line:193] INFO user_dict, .txt
+Tue, 28 Nov 2017 07:31:14 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:31:14] "GET /query?appid=123456 HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:31:46 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:31:46] "OPTIONS /train HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:31:46 fcgi.py[line:88] INFO start train for 123456
+Tue, 28 Nov 2017 07:31:46 fcgi.py[line:97] INFO labels ['应用']
+Tue, 28 Nov 2017 07:31:46 __init__.py[line:111] DEBUG Building prefix dict from the default dictionary ...
+Tue, 28 Nov 2017 07:31:46 __init__.py[line:131] DEBUG Loading model from cache /tmp/jieba.cache
+Tue, 28 Nov 2017 07:31:47 __init__.py[line:163] DEBUG Loading model cost 0.862 seconds.
+Tue, 28 Nov 2017 07:31:47 __init__.py[line:164] DEBUG Prefix dict has been built succesfully.
+Tue, 28 Nov 2017 07:31:47 fcgi.py[line:115] INFO create tagger for 123456_应用
+Tue, 28 Nov 2017 07:31:47 fcgi.py[line:139] ERROR 'ascii' codec can't encode characters in position 12-13: ordinal not in range(128)
+Tue, 28 Nov 2017 07:31:47 fcgi.py[line:140] DEBUG ['  File "fcgi.py", line 118, in train\n    with open(df, "w", encoding=\'utf-8\') as f:\n']
+Tue, 28 Nov 2017 07:31:47 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:31:47] "POST /train HTTP/1.1" 500 -
+Tue, 28 Nov 2017 07:33:05 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:33:05] "OPTIONS /train HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:33:05 fcgi.py[line:88] INFO start train for 123456
+Tue, 28 Nov 2017 07:33:05 fcgi.py[line:97] INFO labels ['应用']
+Tue, 28 Nov 2017 07:33:05 fcgi.py[line:115] INFO create tagger for 123456_应用
+Tue, 28 Nov 2017 07:33:05 fcgi.py[line:139] ERROR 'ascii' codec can't encode characters in position 12-13: ordinal not in range(128)
+Tue, 28 Nov 2017 07:33:05 fcgi.py[line:140] DEBUG ['  File "fcgi.py", line 118, in train\n    with open(df, "w", encoding=\'utf-8\') as f:\n']
+Tue, 28 Nov 2017 07:33:05 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:33:05] "POST /train HTTP/1.1" 500 -

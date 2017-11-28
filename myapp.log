@@ -1,47 +1,20 @@
-Thu, 08 Jun 2017 18:49:37 fcgi.py[line:267] INFO wait for singal!
-Thu, 08 Jun 2017 18:49:37 fcgi.py[line:327] INFO <Condition(<unlocked _thread.RLock object owner=0 count=0 at 0x7fc067cc9f00>, 1)>
-Thu, 08 Jun 2017 18:49:37 fcgi.py[line:267] INFO wait for singal!
-Thu, 08 Jun 2017 18:49:37 fcgi.py[line:327] INFO <Condition(<unlocked _thread.RLock object owner=0 count=0 at 0x7fc05c5f4600>, 1)>
-Thu, 08 Jun 2017 18:49:37 _internal.py[line:87] INFO  * Running on http://0.0.0.0:8001/ (Press CTRL+C to quit)
-Thu, 08 Jun 2017 18:50:07 _internal.py[line:87] INFO 192.168.27.1 - - [08/Jun/2017 18:50:07] "OPTIONS /predict HTTP/1.1" 200 -
-Thu, 08 Jun 2017 18:50:07 fcgi.py[line:275] INFO ----------------------------------------------------------------
-Thu, 08 Jun 2017 18:50:07 fcgi.py[line:276] INFO {"appid":"test9","sentence":"向左移动100个像素"}
-Thu, 08 Jun 2017 18:50:07 fcgi.py[line:277] INFO ----------------------------------------------------------------
-Thu, 08 Jun 2017 18:50:07 fcgi.py[line:285] INFO test9
-Thu, 08 Jun 2017 18:50:07 fcgi.py[line:288] INFO 1
-Thu, 08 Jun 2017 18:50:07 fcgi.py[line:294] INFO wait for result!
-Thu, 08 Jun 2017 18:50:07 __init__.py[line:111] DEBUG Building prefix dict from the default dictionary ...
-Thu, 08 Jun 2017 18:50:07 __init__.py[line:131] DEBUG Loading model from cache /tmp/jieba.cache
-Thu, 08 Jun 2017 18:50:08 __init__.py[line:163] DEBUG Loading model cost 0.845 seconds.
-Thu, 08 Jun 2017 18:50:08 __init__.py[line:164] DEBUG Prefix dict has been built succesfully.
-Thu, 08 Jun 2017 18:50:08 classifier_cnn.py[line:29] DEBUG <tensorflow.python.framework.ops.Graph object at 0x7fc05b2fdf98>
-Thu, 08 Jun 2017 18:50:08 classifier_cnn.py[line:116] DEBUG data/test9/classifier
-Thu, 08 Jun 2017 18:50:08 classifier_cnn.py[line:131] DEBUG ['_PAD', '_UNK', '_NUM', '天气', '的', '怎么样', '播放', '上一个', '下一个', '个', '倍', '像素', '分钟', '北京', '向', '影片', '快进', '快退', '明天', '电影', '秒', '移动', '下周一', '今天', '前天', '右', '后天', '左', '放大', '星期五', '杭州', '深圳', '缩小']
-Thu, 08 Jun 2017 18:50:08 classifier_cnn.py[line:78] DEBUG ['向', '左', '移动', '100', '个', '像素']
-Thu, 08 Jun 2017 18:50:09 fcgi.py[line:243] INFO the operation is move
-Thu, 08 Jun 2017 18:50:09 model.py[line:352] DEBUG Step 1
-Thu, 08 Jun 2017 18:50:09 model.py[line:89] DEBUG <tensorflow.python.framework.ops.Graph object at 0x7fc0584652b0>
-Thu, 08 Jun 2017 18:50:09 model.py[line:89] DEBUG <tensorflow.python.framework.ops.Graph object at 0x7fc0584652b0>
-Thu, 08 Jun 2017 18:50:09 tagger.py[line:55] DEBUG data/test9/test9_move.vocabs,['向', '左', '移动', '100', '个', '像素'],[5, 9, 6, 10, 3, 4]
-Thu, 08 Jun 2017 18:50:09 model.py[line:376] DEBUG reload model from data/test9/test9_move
-Thu, 08 Jun 2017 18:50:11 model.py[line:423] DEBUG 1.94309557134e+16, [0, 2, 0, 3, 0, 0]
-Thu, 08 Jun 2017 18:50:11 tagger.py[line:73] DEBUG pairs {'num': '100', 'direction': 'left'}
-Thu, 08 Jun 2017 18:50:11 fcgi.py[line:267] INFO wait for singal!
-Thu, 08 Jun 2017 18:50:11 fcgi.py[line:299] INFO run success!
-Thu, 08 Jun 2017 18:50:11 _internal.py[line:87] INFO 192.168.27.1 - - [08/Jun/2017 18:50:11] "POST /predict HTTP/1.1" 200 -
-Thu, 08 Jun 2017 18:50:32 _internal.py[line:87] INFO 192.168.27.1 - - [08/Jun/2017 18:50:32] "OPTIONS /predict HTTP/1.1" 200 -
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:275] INFO ----------------------------------------------------------------
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:276] INFO {"appid":"test9","sentence":"向左移动一百个像素"}
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:277] INFO ----------------------------------------------------------------
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:285] INFO test9
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:294] INFO wait for result!
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:213] DEBUG **************1
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:213] DEBUG **************00
-Thu, 08 Jun 2017 18:50:32 classifier_cnn.py[line:78] DEBUG ['向', '左', '移动', '100', '个', '像素']
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:243] INFO the operation is move
-Thu, 08 Jun 2017 18:50:32 tagger.py[line:55] DEBUG data/test9/test9_move.vocabs,['向', '左', '移动', '100', '个', '像素'],[5, 9, 6, 10, 3, 4]
-Thu, 08 Jun 2017 18:50:32 model.py[line:423] DEBUG 6.65786933433e+21, [0, 2, 3, 3, 0, 0]
-Thu, 08 Jun 2017 18:50:32 tagger.py[line:73] DEBUG pairs {'num': '100', 'direction': 'left'}
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:267] INFO wait for singal!
-Thu, 08 Jun 2017 18:50:32 fcgi.py[line:299] INFO run success!
-Thu, 08 Jun 2017 18:50:32 _internal.py[line:87] INFO 192.168.27.1 - - [08/Jun/2017 18:50:32] "POST /predict HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:21:58 fcgi.py[line:272] INFO wait for singal!
+Tue, 28 Nov 2017 07:21:58 fcgi.py[line:332] INFO <Condition(<unlocked _thread.RLock object owner=0 count=0 at 0x7fd1aadc4de0>, 1)>
+Tue, 28 Nov 2017 07:21:58 fcgi.py[line:272] INFO wait for singal!
+Tue, 28 Nov 2017 07:21:58 fcgi.py[line:332] INFO <Condition(<unlocked _thread.RLock object owner=0 count=0 at 0x7fd177cb6c90>, 1)>
+Tue, 28 Nov 2017 07:21:58 _internal.py[line:87] INFO  * Running on http://0.0.0.0:8003/ (Press CTRL+C to quit)
+Tue, 28 Nov 2017 07:22:12 fcgi.py[line:170] INFO name=test&password=test
+Tue, 28 Nov 2017 07:22:12 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:22:12] "POST /login HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:22:12 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:22:12] "OPTIONS /query?appid=123456 HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:22:12 fcgi.py[line:189] INFO get request form appid 123456
+Tue, 28 Nov 2017 07:22:12 fcgi.py[line:194] INFO user_dict, .txt
+Tue, 28 Nov 2017 07:22:12 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:22:12] "GET /query?appid=123456 HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:24:29 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:24:29] "OPTIONS /train HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:24:30 fcgi.py[line:89] INFO start train for 123456
+Tue, 28 Nov 2017 07:24:30 __init__.py[line:111] DEBUG Building prefix dict from the default dictionary ...
+Tue, 28 Nov 2017 07:24:30 __init__.py[line:131] DEBUG Loading model from cache /tmp/jieba.cache
+Tue, 28 Nov 2017 07:24:30 __init__.py[line:163] DEBUG Loading model cost 0.866 seconds.
+Tue, 28 Nov 2017 07:24:30 __init__.py[line:164] DEBUG Prefix dict has been built succesfully.
+Tue, 28 Nov 2017 07:24:30 fcgi.py[line:140] ERROR 'ascii' codec can't encode characters in position 12-13: ordinal not in range(128)
+Tue, 28 Nov 2017 07:24:30 fcgi.py[line:141] DEBUG ['  File "fcgi.py", line 119, in train\n    with open(df, "w", encoding=\'utf-8\') as f:\n']
+Tue, 28 Nov 2017 07:24:30 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:24:30] "POST /train HTTP/1.1" 500 -

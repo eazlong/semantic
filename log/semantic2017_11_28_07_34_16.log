@@ -1,0 +1,37 @@
+Tue, 28 Nov 2017 07:34:16 fcgi.py[line:271] INFO wait for singal!
+Tue, 28 Nov 2017 07:34:16 fcgi.py[line:331] INFO <Condition(<unlocked _thread.RLock object owner=0 count=0 at 0x7f6a657c7de0>, 1)>
+Tue, 28 Nov 2017 07:34:16 fcgi.py[line:271] INFO wait for singal!
+Tue, 28 Nov 2017 07:34:16 fcgi.py[line:331] INFO <Condition(<unlocked _thread.RLock object owner=0 count=0 at 0x7f6a326b5c90>, 1)>
+Tue, 28 Nov 2017 07:34:16 _internal.py[line:87] INFO  * Running on http://0.0.0.0:8003/ (Press CTRL+C to quit)
+Tue, 28 Nov 2017 07:35:00 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:35:00] "OPTIONS /train HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:35:00 fcgi.py[line:88] INFO start train for 123456
+Tue, 28 Nov 2017 07:35:00 fcgi.py[line:97] INFO labels ['application']
+Tue, 28 Nov 2017 07:35:00 __init__.py[line:111] DEBUG Building prefix dict from the default dictionary ...
+Tue, 28 Nov 2017 07:35:00 __init__.py[line:131] DEBUG Loading model from cache /tmp/jieba.cache
+Tue, 28 Nov 2017 07:35:01 __init__.py[line:163] DEBUG Loading model cost 0.892 seconds.
+Tue, 28 Nov 2017 07:35:01 __init__.py[line:164] DEBUG Prefix dict has been built succesfully.
+Tue, 28 Nov 2017 07:35:01 fcgi.py[line:115] INFO create tagger for 123456_application
+Tue, 28 Nov 2017 07:35:01 model.py[line:352] DEBUG Step 2
+Tue, 28 Nov 2017 07:35:01 model.py[line:89] DEBUG <tensorflow.python.framework.ops.Graph object at 0x7f6a315d5a90>
+Tue, 28 Nov 2017 07:35:01 fcgi.py[line:139] ERROR Input 'split_dim' of 'Split' Op has type float32 that does not match expected type of int32.
+Tue, 28 Nov 2017 07:35:01 fcgi.py[line:140] DEBUG ['  File "fcgi.py", line 130, in train\n    t = tagger.Tagger(df, vf, category, data_dir(appid) + category, user_dict, step)\n', '  File "/mnt/semantic/semantic/tagger.py", line 22, in __init__\n    self.model = model.Predictor(category, len(self.keys), ckpt_path, step)\n', '  File "/mnt/semantic/semantic/model.py", line 360, in __init__\n    self.__define_models()\n', '  File "/mnt/semantic/semantic/model.py", line 365, in __define_models\n    category=self._category, class_number=self.label_size, inited=False)\n', '  File "/mnt/semantic/semantic/model.py", line 117, in __init__\n    class_number, layer_num, keep_prob)\n', '  File "/mnt/semantic/semantic/model.py", line 161, in __bldirection_lstm\n    inputs_list = [tf.squeeze(s, [1]) for s in tf.split(1, num_steps, inputs)]\n', '  File "/usr/local/lib/python3.5/dist-packages/tensorflow/python/ops/array_ops.py", line 1214, in split\n    split_dim=axis, num_split=num_or_size_splits, value=value, name=name)\n', '  File "/usr/local/lib/python3.5/dist-packages/tensorflow/python/ops/gen_array_ops.py", line 3261, in _split\n    num_split=num_split, name=name)\n', '  File "/usr/local/lib/python3.5/dist-packages/tensorflow/python/framework/op_def_library.py", line 513, in apply_op\n    (prefix, dtypes.as_dtype(input_arg.type).name))\n']
+Tue, 28 Nov 2017 07:35:01 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:35:01] "POST /train HTTP/1.1" 500 -
+Tue, 28 Nov 2017 07:35:08 fcgi.py[line:188] INFO get request form appid 123456
+Tue, 28 Nov 2017 07:35:08 fcgi.py[line:193] INFO application, .data
+Tue, 28 Nov 2017 07:35:08 fcgi.py[line:193] INFO labels, .txt
+Tue, 28 Nov 2017 07:35:08 fcgi.py[line:193] INFO 123456_application, .vocabs
+Tue, 28 Nov 2017 07:35:08 fcgi.py[line:193] INFO user_dict, .txt
+Tue, 28 Nov 2017 07:35:08 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:35:08] "GET /query?appid=123456 HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:35:14 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:35:14] "OPTIONS /query?appid=123456 HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:188] INFO get request form appid 123456
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:193] INFO application, .data
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:193] INFO labels, .txt
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:193] INFO 123456_application, .vocabs
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:193] INFO user_dict, .txt
+Tue, 28 Nov 2017 07:35:18 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:35:18] "GET /query?appid=123456 HTTP/1.1" 200 -
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:188] INFO get request form appid 123456
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:193] INFO application, .data
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:193] INFO labels, .txt
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:193] INFO 123456_application, .vocabs
+Tue, 28 Nov 2017 07:35:18 fcgi.py[line:193] INFO user_dict, .txt
+Tue, 28 Nov 2017 07:35:18 _internal.py[line:87] INFO 116.77.73.248 - - [28/Nov/2017 07:35:18] "GET /query?appid=123456 HTTP/1.1" 200 -

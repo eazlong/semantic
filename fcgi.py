@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from flask import Flask, jsonify, request, make_response, Response
-import json
+import json, time
 import tagger
 import re
 import os
@@ -13,12 +13,11 @@ import logging
 import sys
 from traceback import format_tb
 # from functools import wraps
-
+handler = logging.FileHandler("log/semantic"+time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())+".log", "w", "utf-8" )
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                     datefmt='%a, %d %b %Y %H:%M:%S',
-                    filename='myapp.log',
-                    filemode='w')
+                    handlers = [handler])
 
 app = Flask(__name__)
 
@@ -68,8 +67,13 @@ def load_labels(appid):
 
 
 def load_dict(file):
+    if not os.path.exists(file):
+        return {}
+
     with open(file, 'r', encoding='utf-8') as f:
         data = f.read()
+        if len(data) == 0:
+            return {}
         return json.loads(data)
 
 
@@ -327,4 +331,4 @@ if __name__ == "__main__":
         logging.info(cond)
         thread_pool.append((t, cond, args))
     app.response_class = MyResponse
-    app.run(port=8001, host='0.0.0.0')
+    app.run(port=8003, host='0.0.0.0')
